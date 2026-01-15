@@ -1,0 +1,281 @@
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+
+<div class="calculator-container">
+    <div class="calc-card">
+        <h3>حاسبة سعر الشتر الرول</h3>
+        <p class="sub-title">ادخل الطول والعرض بالسنتيمتر واختر نوع المحرك</p>
+        
+        <div class="input-grid">
+            <input type="number" id="shutter-height" placeholder="الطول (سم)" step="1">
+            <input type="number" id="shutter-width" placeholder="العرض (سم)" step="1">
+            
+            <div id="shutter-type-wrapper" class="full-width">
+                <select id="shutter-type" onchange="toggleShutterOptions()">
+                    <option value="">نوع المحرك</option>
+                    <option value="manual">شتر يدوي</option>
+                    <option value="electric">شتر كهربائي</option>
+                </select>
+            </div>
+
+            <div id="motor-remote-wrapper" class="hidden">
+                <select id="motor-remote">
+                    <option value="0">خيار التحكم </option>
+                    <option value="0">سويتش التحكم (مجاناً)</option>
+                    <option value="150">ريموت 1 قناة (150 ريال)</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="installation-box" class="hidden">
+            <p style="font-size: 14px; margin-bottom: 10px;">هل تريد تأسيس كهرباء؟</p>
+            <div class="install-options">
+                <div class="install-item active" onclick="selectInstall(this, 0)">بدون تأسيس</div>
+                <div class="install-item" onclick="selectInstall(this, 200)">تأسيس كهرباء (200 ريال)</div>
+            </div>
+            <input type="hidden" id="shutter-installation" value="0">
+        </div>
+
+        <button class="calc-btn" onclick="calculateShutter()">احسب السعر</button>
+        
+        <div id="shutter-result-container" class="hidden result-animate">
+            <div id="shutter-result"></div>
+            <p id="shutter-note" class="tax-note">السعر شامل ضريبة القيمة المضافة 15%</p>
+        </div>
+    </div>
+
+    <div class="calc-card">
+        <h3>حاسبة سعر الشبك النامس</h3>
+        <p class="sub-title">ادخل الطول والعرض بالسنتيمتر واختر نوع الشبك</p>
+        
+        <div class="input-grid">
+            <input type="number" id="screen-height" placeholder="الطول (سم)" step="1">
+            <input type="number" id="screen-width" placeholder="العرض (سم)" step="1">
+            
+            <div class="full-width">
+                <select id="screen-type">
+                    <option value="">اختر نوع الشبك</option>
+                    <option value="side">شبك جانبي</option>
+                    <option value="roll">الشبك الرول</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="calc-btn" onclick="calculateScreen()">احسب السعر</button>
+        <div id="screen-result-container" class="hidden result-animate">
+            <div id="screen-result"></div>
+            <p id="screen-note" class="tax-note">السعر شامل ضريبة القيمة المضافة 15%</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .calculator-container {
+        display: flex; gap: 25px; flex-wrap: wrap; direction: rtl;
+        font-family: 'Cairo', sans-serif; justify-content: center;
+        background-color: #5f5f5b; padding: 40px 20px; border-radius: 20px;
+    }
+    .calc-card {
+        flex: 1; min-width: 320px; max-width: 500px; background: rgba(255, 255, 255, 0.05);
+        color: white; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 35px; border-radius: 20px; transition: transform 0.3s ease;
+    }
+    .calc-card h3 { font-size: 28px; color: #fff; margin-bottom: 5px; font-weight: 700; }
+    .sub-title { font-size: 14px; color: #ccc; margin-bottom: 25px; }
+
+    .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+    
+    /* فئات مخصصة للتحكم في العرض */
+    .full-width { grid-column: span 2; }
+    .half-width { grid-column: span 1; }
+
+    input, select {
+        padding: 14px 12px; border-radius: 40px; border: 2px solid transparent;
+        background: rgba(238, 242, 245, 0.95); font-size: 16px; font-family: 'Cairo', sans-serif;
+        font-weight: 700; outline: none; width: 100%; box-sizing: border-box; color: #333;
+        transition: all 0.3s ease;
+    }
+    input:focus, select:focus { border-color: #3498db; background: #fff; transform: scale(1.02); }
+
+    .install-options { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+    .install-item {
+        flex: 1; padding: 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px; cursor: pointer; font-size: 13px; transition: all 0.3s;
+    }
+    .install-item.active { background: #3498db; border-color: #3498db; color: white; font-weight: bold; }
+
+    .calc-btn {
+        width: 100%; max-width: 250px; padding: 15px; background: #042243; color: #fff; border: none;
+        border-radius: 40px; cursor: pointer; font-weight: 700; font-size: 20px; transition: all 0.4s ease;
+    }
+    .calc-btn:hover { background: #3498db; box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4); }
+    
+    .hidden { display: none !important; }
+    .result-box { margin-top: 25px; font-size: 24px; font-weight: 700; color: #2ecc71; }
+    .error-msg { margin-top: 25px; font-size: 18px; font-weight: 700; color: #ff4d4d; }
+    .tax-note { color: #2ecc71 !important; margin-top: 5px; font-weight: 700; font-size: 16px; }
+    .min-area-note { color: #ffcc00 !important; font-size: 13px; margin-top: 8px; font-weight: 700; }
+
+    /* تعديلات الموبايل */
+    @media only screen and (max-width: 768px) {
+        .calculator-container { padding: 20px 15px; }
+        .calc-card { 
+            flex: none; 
+            width: 100%; 
+            min-width: 100%; 
+            margin-bottom: 20px; 
+            padding: 25px 15px;
+            box-sizing: border-box;
+        }
+        .input-grid { 
+            grid-template-columns: 1fr 1fr; /* نحافظ على تقسيم الطول والعرض بجانب بعضهما */
+            gap: 10px; 
+        }
+        .calc-btn { max-width: 100%; width: 100%; }
+        .calc-card h3 { font-size: 22px; }
+    }
+</style>
+
+<script>
+function toggleShutterOptions() {
+    var type = document.getElementById('shutter-type').value;
+    var typeWrapper = document.getElementById('shutter-type-wrapper');
+    var motorWrapper = document.getElementById('motor-remote-wrapper');
+    var installBox = document.getElementById('installation-box');
+    
+    if (type === 'electric') {
+        // تحويل نوع المحرك إلى اليمين وإظهار خيار التحكم في اليسار
+        typeWrapper.classList.remove('full-width');
+        typeWrapper.classList.add('half-width');
+        motorWrapper.classList.remove('hidden');
+        motorWrapper.classList.add('half-width');
+        installBox.classList.remove('hidden');
+    } else {
+        // إعادة نوع المحرك ليكون ممتداً في المنتصف
+        typeWrapper.classList.remove('half-width');
+        typeWrapper.classList.add('full-width');
+        motorWrapper.classList.add('hidden');
+        motorWrapper.classList.remove('half-width');
+        installBox.classList.add('hidden');
+    }
+}
+
+function selectInstall(element, value) {
+    var items = document.querySelectorAll('.install-item');
+    for (var i = 0; i < items.length; i++) {
+        items[i].classList.remove('active');
+    }
+    element.classList.add('active');
+    document.getElementById('shutter-installation').value = value;
+}
+
+// دالة حساب الشتر
+function calculateShutter() {
+    var h_cm = parseFloat(document.getElementById('shutter-height').value);
+    var w_cm = parseFloat(document.getElementById('shutter-width').value);
+    var width = w_cm / 100;
+    var height = h_cm / 100;
+    var type = document.getElementById('shutter-type').value;
+    var remotePrice = parseFloat(document.getElementById('motor-remote').value) || 0;
+    var installPrice = parseFloat(document.getElementById('shutter-installation').value) || 0;
+    var resultDiv = document.getElementById('shutter-result');
+    var container = document.getElementById('shutter-result-container');
+    var noteDiv = document.getElementById('shutter-note');
+
+    container.classList.add('hidden');
+    if (isNaN(width) || isNaN(height) || !type) {
+        container.classList.remove('hidden');
+        resultDiv.innerHTML = "يرجى إدخال كافة البيانات";
+        resultDiv.className = "error-msg";
+        noteDiv.classList.add('hidden');
+        return;
+    }
+
+    var actualArea = width * height;
+    var calcArea = Math.max(actualArea, 2.0);
+    var showMinNote = actualArea < 2.0;
+    var motorPrice = 0;
+
+    if (type === 'manual') {
+        if (actualArea > 3.0) {
+            container.classList.remove('hidden');
+            resultDiv.innerHTML = "أقصى مساحة للشتر اليدوي هي 3 متر مربع";
+            resultDiv.className = "error-msg";
+            noteDiv.classList.add('hidden');
+            return;
+        }
+        motorPrice = 250;
+    } else {
+        if (height > 4.5 || width > 4.5) {
+            container.classList.remove('hidden');
+            resultDiv.innerHTML = "أقصى ارتفاع وعرض مسموح هو 4.5 متر";
+            resultDiv.className = "error-msg";
+            noteDiv.classList.add('hidden');
+            return;
+        }
+        if (calcArea <= 2.6) motorPrice = 600;
+        else if (calcArea <= 4.5) motorPrice = 850;
+        else if (calcArea <= 6.25) motorPrice = 950;
+        else if (calcArea <= 8.75) motorPrice = 1150;
+        else if (calcArea <= 11.25) motorPrice = 1450;
+        else if (calcArea <= 13.75) motorPrice = 2200;
+        else motorPrice = 2500;
+        motorPrice += remotePrice + installPrice;
+    }
+
+    var total = (calcArea * 280) + motorPrice;
+    var finalWithTax = total * 1.15;
+    
+    container.classList.remove('hidden');
+    noteDiv.classList.remove('hidden'); 
+    resultDiv.className = "result-box"; 
+    resultDiv.innerHTML = "الإجمالي: " + finalWithTax.toFixed(2) + " ريال" + (showMinNote ? "<div class='min-area-note'>* تم احتساب أقل مساحة (2 متر مربع)</div>" : "");
+}
+
+// دالة حساب الشبك
+function calculateScreen() {
+    var h_cm = parseFloat(document.getElementById('screen-height').value);
+    var w_cm = parseFloat(document.getElementById('screen-width').value);
+    var width = w_cm / 100;
+    var height = h_cm / 100;
+    var type = document.getElementById('screen-type').value;
+    var resultDiv = document.getElementById('screen-result');
+    var container = document.getElementById('screen-result-container');
+    var noteDiv = document.getElementById('screen-note');
+
+    container.classList.add('hidden');
+    if (isNaN(width) || isNaN(height) || !type) {
+        container.classList.remove('hidden');
+        resultDiv.innerHTML = "يرجى إدخال كافة البيانات";
+        resultDiv.className = "error-msg";
+        noteDiv.classList.add('hidden');
+        return;
+    }
+
+    var actualArea = width * height;
+    var minArea = (type === 'side') ? 2.3 : 1.5;
+    var calcArea = Math.max(actualArea, minArea);
+    var showMinNote = actualArea < minArea;
+    var pricePerMeter = (type === 'side') ? (width > 1.6 ? 480 : 420) : 350;
+
+    if (type === 'roll' && (height > 2.0 || width > 5.0)) {
+        container.classList.remove('hidden');
+        resultDiv.innerHTML = "أقصى ارتفاع 2م وأقصى عرض 5م لشبك الرول";
+        resultDiv.className = "error-msg";
+        noteDiv.classList.add('hidden');
+        return;
+    }
+    if (type === 'side' && height > 3.0) {
+        container.classList.remove('hidden');
+        resultDiv.innerHTML = "أقصى ارتفاع مسموح هو 3 متر";
+        resultDiv.className = "error-msg";
+        noteDiv.classList.add('hidden');
+        return;
+    }
+
+    var finalWithTax = (calcArea * pricePerMeter) * 1.15;
+    container.classList.remove('hidden');
+    noteDiv.classList.remove('hidden');
+    resultDiv.className = "result-box";
+    resultDiv.innerHTML = "الإجمالي: " + finalWithTax.toFixed(2) + " ريال" + (showMinNote ? "<div class='min-area-note'>* تم احتساب أقل مساحة (" + minArea + " متر مربع)</div>" : "");
+}
+</script>
