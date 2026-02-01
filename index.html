@@ -1,17 +1,30 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
+<!-- الحاسبات -->
 <div class="calculator-container">
+    
+    <!-- حاسبة الشتر الرول -->
     <div class="calc-card">
+        <div class="watermark watermark-top"></div>
+        <div class="watermark watermark-bottom"></div>
+        
         <h3>حاسبة سعر الشتر الرول</h3>
-        <p class="sub-title">ادخل الطول والعرض بالسنتيمتر واختر نوع المحرك</p>
+        <p class="sub-title">ادخل الطول والعرض بالسنتيمتر واختر نوع التحكم</p>
         
         <div class="input-grid">
-            <input type="number" id="shutter-height" placeholder="الطول (سم)" step="1">
-            <input type="number" id="shutter-width" placeholder="العرض (سم)" step="1">
+            <div class="input-group">
+                <label class="example-label">الطول مثال 200 سم</label>
+                <input type="number" id="shutter-height" placeholder="الطول (سم)" step="1">
+            </div>
+            <div class="input-group">
+                <label class="example-label">العرض مثال 150 سم</label>
+                <input type="number" id="shutter-width" placeholder="العرض (سم)" step="1">
+            </div>
             
             <div id="shutter-type-wrapper" class="full-width">
                 <select id="shutter-type" onchange="toggleShutterOptions()">
-                    <option value="">نوع المحرك</option>
+                    <option value="">نوع التحكم</option>
                     <option value="manual">شتر يدوي</option>
                     <option value="electric">شتر كهربائي</option>
                 </select>
@@ -27,10 +40,10 @@
         </div>
 
         <div id="installation-box" class="hidden">
-            <p style="font-size: 14px; margin-bottom: 10px;">هل تريد تأسيس كهرباء؟</p>
+            <p class="install-label">هل تحتاج تأسيس كهرباء للشتر ؟</p>
             <div class="install-options">
                 <div class="install-item active" onclick="selectInstall(this, 0)">بدون تأسيس</div>
-                <div class="install-item" onclick="selectInstall(this, 200)">تأسيس كهرباء (200 ريال)</div>
+                <div class="install-item" id="install-price-btn" onclick="selectInstall(this, 200)">تأسيس كهرباء (200 ريال)</div>
             </div>
             <input type="hidden" id="shutter-installation" value="0">
         </div>
@@ -39,17 +52,29 @@
         
         <div id="shutter-result-container" class="hidden result-animate">
             <div id="shutter-result"></div>
-            <p id="shutter-note" class="tax-note">السعر شامل ضريبة القيمة المضافة 15%</p>
+            <p id="shutter-tax-note" class="tax-note">السعر شامل ضريبة القيمة المضافة 15%</p>
+            <!-- زر طلب زيارة فني للشتر - يظهر فقط عند وجود سعر صحيح -->
+            <button id="shutter-visit-btn" class="visit-request-btn hidden" onclick="openVisitModal()">طلب زيارة فني</button>
         </div>
     </div>
 
+    <!-- حاسبة الشبك النامس -->
     <div class="calc-card">
+        <div class="watermark watermark-top"></div>
+        <div class="watermark watermark-bottom"></div>
+
         <h3>حاسبة سعر الشبك النامس</h3>
         <p class="sub-title">ادخل الطول والعرض بالسنتيمتر واختر نوع الشبك</p>
         
         <div class="input-grid">
-            <input type="number" id="screen-height" placeholder="الطول (سم)" step="1">
-            <input type="number" id="screen-width" placeholder="العرض (سم)" step="1">
+            <div class="input-group">
+                <label class="example-label">الطول مثال 90 سم</label>
+                <input type="number" id="screen-height" placeholder="الطول (سم)" step="1">
+            </div>
+            <div class="input-group">
+                <label class="example-label">العرض مثال 155 سم</label>
+                <input type="number" id="screen-width" placeholder="العرض (سم)" step="1">
+            </div>
             
             <div class="full-width">
                 <select id="screen-type">
@@ -63,7 +88,47 @@
         <button class="calc-btn" onclick="calculateScreen()">احسب السعر</button>
         <div id="screen-result-container" class="hidden result-animate">
             <div id="screen-result"></div>
-            <p id="screen-note" class="tax-note">السعر شامل ضريبة القيمة المضافة 15%</p>
+            <p id="screen-tax-note" class="tax-note">السعر شامل ضريبة القيمة المضافة 15%</p>
+            <!-- زر طلب زيارة فني للشبك - يظهر فقط عند وجود سعر صحيح -->
+            <button id="screen-visit-btn" class="visit-request-btn hidden" onclick="openVisitModal()">طلب زيارة فني</button>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة منبثقة لطلب الزيارة -->
+<div id="visitModal" class="modal hidden">
+    <div class="modal-overlay" onclick="closeVisitModal()"></div>
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeVisitModal()">×</button>
+        <h2 class="modal-title">طلب زيارة فني للموقع</h2>
+        <p class="modal-note">* تبلغ تكلفة زيارة الفني 200 ريال، ويتم خصم هذا المبلغ من قيمة العقد عند إتمامه.</p>
+        
+        <form id="visitForm">
+            <input type="text" id="user_name" placeholder="الاسم الكامل" required>
+            <input type="tel" id="user_phone" placeholder="رقم الجوال" required>
+            <input type="email" id="user_email" placeholder="البريد الإلكتروني (اختياري)">
+            
+            <p class="service-title">الخدمة المطلوبة:</p>
+            <div class="services-grid">
+                <label class="service-item">
+                    <input type="checkbox" name="service" value="الشبك النامس">
+                    <span>الشبك النامس</span>
+                </label>
+                <label class="service-item">
+                    <input type="checkbox" name="service" value="الشتر الرول">
+                    <span>الشتر الرول</span>
+                </label>
+                <label class="service-item">
+                    <input type="checkbox" name="service" value="زجاج فريمليس">
+                    <span>زجاج فريمليس</span>
+                </label>
+            </div>
+            
+            <button type="submit" class="submit-form-btn" id="submitBtn">إرسال الطلب</button>
+        </form>
+        
+        <div id="successMsg" class="success-message hidden">
+            وصلتنا معلوماتك، وفريقنا بيتواصل معك قريب لتحديد موعد الزيارة
         </div>
     </div>
 </div>
@@ -72,210 +137,374 @@
     .calculator-container {
         display: flex; gap: 25px; flex-wrap: wrap; direction: rtl;
         font-family: 'Cairo', sans-serif; justify-content: center;
-        background-color: #5f5f5b; padding: 40px 20px; border-radius: 20px;
+        background-color: #777772; padding: 40px 20px; border-radius: 20px;
     }
     .calc-card {
         flex: 1; min-width: 320px; max-width: 500px; background: rgba(255, 255, 255, 0.05);
         color: white; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 35px; border-radius: 20px; transition: transform 0.3s ease;
+        padding: 40px; border-radius: 20px; transition: transform 0.3s ease;
+        position: relative; overflow: hidden;
     }
-    .calc-card h3 { font-size: 28px; color: #fff; margin-bottom: 5px; font-weight: 700; }
-    .sub-title { font-size: 14px; color: #ccc; margin-bottom: 25px; }
+    .watermark {
+        position: absolute; width: 110px; height: 110px;
+        background-image: url('https://mejdafco.com/wp-content/uploads/2026/01/logo.png'); background-size: contain;
+        background-repeat: no-repeat; opacity: 0.6; z-index: 0; pointer-events: none;
+    }
+    .watermark-top { top: 10px; left: 12px; transform: translate(-10%, -10%); }
+    .watermark-bottom { bottom: -25px; right: 13px; transform: translate(10%, 10%); }
 
-    .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-    
-    /* فئات مخصصة للتحكم في العرض */
+    .calc-card h3, .calc-card .sub-title, .input-grid, .calc-btn, #installation-box, #shutter-result-container, #screen-result-container {
+        position: relative; z-index: 2; 
+    }
+
+    .calc-card h3 { font-size: 26px; color: #fff; margin-bottom: 5px; font-weight: 700; }
+    .sub-title { font-size: 13px; color: #eee; margin-bottom: 20px; }
+    .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; text-align: right; }
+    .example-label { display: block; font-size: 12px; color: rgba(255, 255, 255, 0.4); margin-bottom: 5px; font-weight: 400; padding-right: 15px; }
     .full-width { grid-column: span 2; }
     .half-width { grid-column: span 1; }
 
-    input, select {
-        padding: 14px 12px; border-radius: 40px; border: 2px solid transparent;
-        background: rgba(238, 242, 245, 0.95); font-size: 16px; font-family: 'Cairo', sans-serif;
+    .calculator-container input, .calculator-container select {
+        padding: 12px; border-radius: 40px; border: 2px solid transparent;
+        background: rgba(238, 242, 245, 0.95); font-size: 15px; font-family: 'Cairo', sans-serif;
         font-weight: 700; outline: none; width: 100%; box-sizing: border-box; color: #333;
-        transition: all 0.3s ease;
     }
-    input:focus, select:focus { border-color: #3498db; background: #fff; transform: scale(1.02); }
+    .calculator-container input:focus, .calculator-container select:focus { border-color: #3498db; transition: 0.3s; }
 
+    .install-label { font-size: 14px; margin-bottom: 10px; color: #fff; font-weight: 700; }
     .install-options { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
     .install-item {
         flex: 1; padding: 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 10px; cursor: pointer; font-size: 13px; transition: all 0.3s;
+        border-radius: 10px; cursor: pointer; font-size: 12px; transition: all 0.3s;
     }
     .install-item.active { background: #3498db; border-color: #3498db; color: white; font-weight: bold; }
 
     .calc-btn {
-        width: 100%; max-width: 250px; padding: 15px; background: #042243; color: #fff; border: none;
-        border-radius: 40px; cursor: pointer; font-weight: 700; font-size: 20px; transition: all 0.4s ease;
+        width: 100%; max-width: 250px; padding: 12px; background: #042243; color: #fff; border: none;
+        border-radius: 40px; cursor: pointer; font-weight: 700; font-size: 18px; transition: 0.4s;
     }
     .calc-btn:hover { background: #3498db; box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4); }
     
     .hidden { display: none !important; }
-    .result-box { margin-top: 25px; font-size: 24px; font-weight: 700; color: #2ecc71; }
-    .error-msg { margin-top: 25px; font-size: 18px; font-weight: 700; color: #ff4d4d; }
-    .tax-note { color: #2ecc71 !important; margin-top: 5px; font-weight: 700; font-size: 16px; }
-    .min-area-note { color: #ffcc00 !important; font-size: 13px; margin-top: 8px; font-weight: 700; }
+    .result-box { margin-top: 20px; font-size: 22px; font-weight: 700; color: #2ecc71; }
+    .error-msg { margin-top: 20px; font-size: 16px; font-weight: 700; color: #ff4d4d; }
+    .tax-note { color: #2ecc71 !important; margin-top: 5px; font-weight: 700; font-size: 14px; }
+    .min-area-note { color: #ffcc00 !important; font-size: 12px; margin-top: 5px; font-weight: 700; }
 
-    /* تعديلات الموبايل */
-    @media only screen and (max-width: 768px) {
-        .calculator-container { padding: 20px 15px; }
-        .calc-card { 
-            flex: none; 
-            width: 100%; 
-            min-width: 100%; 
-            margin-bottom: 20px; 
-            padding: 25px 15px;
-            box-sizing: border-box;
-        }
-        .input-grid { 
-            grid-template-columns: 1fr 1fr; /* نحافظ على تقسيم الطول والعرض بجانب بعضهما */
-            gap: 10px; 
-        }
-        .calc-btn { max-width: 100%; width: 100%; }
-        .calc-card h3 { font-size: 22px; }
+    /* زر طلب زيارة فني */
+    .visit-request-btn {
+        width: 100%; max-width: 250px; padding: 12px; background: #042243; color: #fff; border: none;
+        border-radius: 40px; cursor: pointer; font-weight: 700; font-size: 16px; transition: 0.4s;
+        margin-top: 15px; position: relative; z-index: 2;
+    }
+    .visit-request-btn:hover { background: #042243; box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4); }
+
+    /* Modal Styles */
+    .modal {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .modal-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.7); z-index: 1;
+    }
+    .modal-content {
+        background: #f8f9fa; width: 90%; max-width: 500px; padding: 30px;
+        border-radius: 20px; text-align: center; position: relative; z-index: 2;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto;
+        direction: rtl;
+    }
+    .modal-close {
+        position: absolute; top: 15px; left: 15px; background: #ff4d4d; color: white;
+        border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 24px;
+        cursor: pointer; line-height: 1; transition: 0.3s;
+    }
+    .modal-close:hover { background: #e74c3c; }
+    .modal-title { color: #042243; font-size: 24px; margin-bottom: 10px; font-weight: 700; }
+    .modal-note { font-size: 13px; color: #777; margin-bottom: 20px; line-height: 1.6; }
+    
+    #visitForm input {
+        width: 100%; background: #eff2f5; border: 1px solid #ddd; margin-bottom: 15px;
+        border-radius: 30px; padding: 15px; font-family: 'Cairo', sans-serif;
+        font-weight: 700; box-sizing: border-box; outline: none;
+    }
+    #visitForm input:focus { border-color: #3498db; }
+
+    .service-title { text-align: right; font-weight: 700; margin: 10px 10px 10px 0; color: #042243; }
+    
+    .services-grid { display: flex; gap: 10px; margin-bottom: 25px; }
+    .service-item {
+        flex: 1; background: #eee; padding: 15px 5px; border-radius: 12px; cursor: pointer;
+        display: flex; flex-direction: column; align-items: center; font-size: 13px;
+        color: #333; transition: 0.3s; border: 2px solid transparent;
+    }
+    .service-item:hover { background: #e0e0e0; }
+    .service-item input { margin-bottom: 8px !important; width: auto !important; cursor: pointer; }
+    
+    .submit-form-btn {
+        width: 100%; padding: 15px; background: #042243; color: white; border: none;
+        border-radius: 40px; font-weight: 700; font-size: 18px; cursor: pointer; transition: 0.4s;
+    }
+    .submit-form-btn:hover { background: #3498db; }
+
+    .success-message { color: #2ecc71; font-weight: 700; margin-top: 15px; font-size: 16px; }
+
+    @media (max-width: 768px) { 
+        .calc-card { width: 100%; min-width: 100%; padding: 25px; } 
+        .input-grid { grid-template-columns: 1fr 1fr; } 
+        .services-grid { flex-direction: column; }
     }
 </style>
 
 <script>
+/** * لوحة تحكم الأسعار - (تعديل العميل هنا فقط)
+ * يتم استخدام هذه المتغيرات تلقائياً في المعادلات بالأسفل
+ * -----------------------------------------------------------------
+ */
+const CONFIG = {
+    // إعدادات الشتر (يدوي وكهربائي)
+    SHUTTER_METER_PRICE: 280,      // سعر المتر المربع للشتر (يدوي أو كهربائي)
+    MANUAL_MACHINE_PRICE: 250,    // سعر ماكينة الشتر اليدوي
+    INSTALLATION_PRICE: 200,      // سعر طلب تأسيس كهرباء
+    REMOTE_PRICE: 150,            // سعر الريموت (واحد قناة)
+    SHUTTER_MIN_AREA: 2.0,        // أقل مساحة يتم محاسبة العميل عليها للشتر (متر مربع)
+    SHUTTER_MANUAL_MAX: 3.0,      // أقصى مساحة مسموحة للشتر اليدوي (متر مربع)
+
+    // جدول أسعار المحركات الكهربائية (بناءً على المساحة بالمتر المربع)
+    MOTOR_PRICES: [
+        { max: 2.6, price: 600 },
+        { max: 4.5, price: 850 },
+        { max: 6.25, price: 950 },
+        { max: 8.75, price: 1150 },
+        { max: 11.25, price: 1450 },
+        { max: 13.75, price: 2200 },
+        { max: 20.25, price: 2500 } // أقصى سعر للمساحات الكبيرة
+    ],
+
+    // إعدادات الشبك النامس
+    SCREEN_MIN_SIDE: 2.3,         // أقل مساحة للشبك الجانبي
+    SCREEN_MIN_ROLL: 1.0,         // أقل مساحة لشبك الرول (تم تعديلها لـ 1 متر)
+    SCREEN_SIDE_PRICE_SMALL: 420, // سعر متر الشبك الجانبي (إذا كان العرض <= 1.60م)
+    SCREEN_SIDE_PRICE_LARGE: 480, // سعر متر الشبك الجانبي (إذا كان العرض > 1.60م)
+    SCREEN_ROLL_PRICE: 350,       // سعر متر شبك الرول
+
+    // الضريبة
+    TAX_RATE: 0.15                // نسبة الضريبة (15%)
+};
+
+/** * -----------------------------------------------------------------
+ * منطق البرمجة (يرجى عدم التعديل هنا لضمان عمل الحاسبة)
+ * -----------------------------------------------------------------
+ */
+
 function toggleShutterOptions() {
     var type = document.getElementById('shutter-type').value;
     var typeWrapper = document.getElementById('shutter-type-wrapper');
     var motorWrapper = document.getElementById('motor-remote-wrapper');
     var installBox = document.getElementById('installation-box');
-    
     if (type === 'electric') {
-        // تحويل نوع المحرك إلى اليمين وإظهار خيار التحكم في اليسار
-        typeWrapper.classList.remove('full-width');
-        typeWrapper.classList.add('half-width');
-        motorWrapper.classList.remove('hidden');
-        motorWrapper.classList.add('half-width');
-        installBox.classList.remove('hidden');
+        typeWrapper.className = 'half-width';
+        motorWrapper.className = 'half-width';
+        installBox.className = '';
     } else {
-        // إعادة نوع المحرك ليكون ممتداً في المنتصف
-        typeWrapper.classList.remove('half-width');
-        typeWrapper.classList.add('full-width');
-        motorWrapper.classList.add('hidden');
-        motorWrapper.classList.remove('half-width');
-        installBox.classList.add('hidden');
+        typeWrapper.className = 'full-width';
+        motorWrapper.className = 'hidden';
+        installBox.className = 'hidden';
     }
 }
 
 function selectInstall(element, value) {
-    var items = document.querySelectorAll('.install-item');
-    for (var i = 0; i < items.length; i++) {
-        items[i].classList.remove('active');
-    }
+    document.querySelectorAll('.install-item').forEach(i => i.classList.remove('active'));
     element.classList.add('active');
     document.getElementById('shutter-installation').value = value;
 }
 
-// دالة حساب الشتر
 function calculateShutter() {
-    var h_cm = parseFloat(document.getElementById('shutter-height').value);
-    var w_cm = parseFloat(document.getElementById('shutter-width').value);
-    var width = w_cm / 100;
-    var height = h_cm / 100;
+    var h = parseFloat(document.getElementById('shutter-height').value) / 100;
+    var w = parseFloat(document.getElementById('shutter-width').value) / 100;
     var type = document.getElementById('shutter-type').value;
-    var remotePrice = parseFloat(document.getElementById('motor-remote').value) || 0;
-    var installPrice = parseFloat(document.getElementById('shutter-installation').value) || 0;
-    var resultDiv = document.getElementById('shutter-result');
+    var remote = parseFloat(document.getElementById('motor-remote').value) || 0;
+    var install = parseFloat(document.getElementById('shutter-installation').value) || 0;
+    var resDiv = document.getElementById('shutter-result');
     var container = document.getElementById('shutter-result-container');
-    var noteDiv = document.getElementById('shutter-note');
+    var taxNote = document.getElementById('shutter-tax-note');
+    var visitBtn = document.getElementById('shutter-visit-btn');
 
     container.classList.add('hidden');
-    if (isNaN(width) || isNaN(height) || !type) {
+    taxNote.classList.add('hidden');
+    visitBtn.classList.add('hidden'); // إخفاء الزر دائماً في البداية
+
+    if (isNaN(h) || isNaN(w) || !type) {
         container.classList.remove('hidden');
-        resultDiv.innerHTML = "يرجى إدخال كافة البيانات";
-        resultDiv.className = "error-msg";
-        noteDiv.classList.add('hidden');
+        resDiv.innerHTML = "يرجى إدخال كافة البيانات";
+        resDiv.className = "error-msg";
+        // الزر يبقى مخفي لأن مفيش سعر
         return;
     }
 
-    var actualArea = width * height;
-    var calcArea = Math.max(actualArea, 2.0);
-    var showMinNote = actualArea < 2.0;
+    var actualArea = h * w;
+    var area = Math.max(actualArea, CONFIG.SHUTTER_MIN_AREA);
     var motorPrice = 0;
 
     if (type === 'manual') {
-        if (actualArea > 3.0) {
+        if (actualArea > CONFIG.SHUTTER_MANUAL_MAX) {
             container.classList.remove('hidden');
-            resultDiv.innerHTML = "أقصى مساحة للشتر اليدوي هي 3 متر مربع";
-            resultDiv.className = "error-msg";
-            noteDiv.classList.add('hidden');
+            resDiv.innerHTML = "أقصى مساحة للشتر اليدوي هي " + CONFIG.SHUTTER_MANUAL_MAX + "م²";
+            resDiv.className = "error-msg";
+            // الزر يبقى مخفي لأن مفيش سعر
             return;
         }
-        motorPrice = 250;
+        motorPrice = CONFIG.MANUAL_MACHINE_PRICE;
     } else {
-        if (height > 4.5 || width > 4.5) {
+        if (h > 4.5 || w > 4.5) {
             container.classList.remove('hidden');
-            resultDiv.innerHTML = "أقصى ارتفاع وعرض مسموح هو 4.5 متر";
-            resultDiv.className = "error-msg";
-            noteDiv.classList.add('hidden');
+            resDiv.innerHTML = "أقصى أبعاد مسموحة 4.5م";
+            resDiv.className = "error-msg";
+            // الزر يبقى مخفي لأن مفيش سعر
             return;
         }
-        if (calcArea <= 2.6) motorPrice = 600;
-        else if (calcArea <= 4.5) motorPrice = 850;
-        else if (calcArea <= 6.25) motorPrice = 950;
-        else if (calcArea <= 8.75) motorPrice = 1150;
-        else if (calcArea <= 11.25) motorPrice = 1450;
-        else if (calcArea <= 13.75) motorPrice = 2200;
-        else motorPrice = 2500;
-        motorPrice += remotePrice + installPrice;
+        // جلب سعر المحرك من القائمة
+        for (let m of CONFIG.MOTOR_PRICES) {
+            if (area <= m.max) {
+                motorPrice = m.price;
+                break;
+            }
+        }
+        motorPrice += remote + install;
     }
 
-    var total = (calcArea * 280) + motorPrice;
-    var finalWithTax = total * 1.15;
-    
+    var total = ((area * CONFIG.SHUTTER_METER_PRICE) + motorPrice) * (1 + CONFIG.TAX_RATE);
     container.classList.remove('hidden');
-    noteDiv.classList.remove('hidden'); 
-    resultDiv.className = "result-box"; 
-    resultDiv.innerHTML = "الإجمالي: " + finalWithTax.toFixed(2) + " ريال" + (showMinNote ? "<div class='min-area-note'>* تم احتساب أقل مساحة (2 متر مربع)</div>" : "");
+    taxNote.classList.remove('hidden');
+    visitBtn.classList.remove('hidden'); // إظهار الزر فقط عند نجاح الحساب
+    resDiv.className = "result-box";
+    resDiv.innerHTML = "الإجمالي: " + total.toFixed(2) + " ريال" + 
+        (actualArea < CONFIG.SHUTTER_MIN_AREA ? "<div class='min-area-note'>* تم احتساب أقل مساحة (" + CONFIG.SHUTTER_MIN_AREA + " متر مربع)</div>" : "");
 }
 
-// دالة حساب الشبك
 function calculateScreen() {
-    var h_cm = parseFloat(document.getElementById('screen-height').value);
-    var w_cm = parseFloat(document.getElementById('screen-width').value);
-    var width = w_cm / 100;
-    var height = h_cm / 100;
+    var h = parseFloat(document.getElementById('screen-height').value) / 100;
+    var w = parseFloat(document.getElementById('screen-width').value) / 100;
     var type = document.getElementById('screen-type').value;
-    var resultDiv = document.getElementById('screen-result');
+    var resDiv = document.getElementById('screen-result');
     var container = document.getElementById('screen-result-container');
-    var noteDiv = document.getElementById('screen-note');
+    var taxNote = document.getElementById('screen-tax-note');
+    var visitBtn = document.getElementById('screen-visit-btn');
 
     container.classList.add('hidden');
-    if (isNaN(width) || isNaN(height) || !type) {
+    taxNote.classList.add('hidden');
+    visitBtn.classList.add('hidden'); // إخفاء الزر دائماً في البداية
+
+    if (isNaN(h) || isNaN(w) || !type) {
         container.classList.remove('hidden');
-        resultDiv.innerHTML = "يرجى إدخال كافة البيانات";
-        resultDiv.className = "error-msg";
-        noteDiv.classList.add('hidden');
+        resDiv.innerHTML = "يرجى إدخال كافة البيانات";
+        resDiv.className = "error-msg";
+        // الزر يبقى مخفي لأن مفيش سعر
         return;
     }
 
-    var actualArea = width * height;
-    var minArea = (type === 'side') ? 2.3 : 1.5;
-    var calcArea = Math.max(actualArea, minArea);
-    var showMinNote = actualArea < minArea;
-    var pricePerMeter = (type === 'side') ? (width > 1.6 ? 480 : 420) : 350;
+    var actualArea = h * w;
+    var minArea = (type === 'side') ? CONFIG.SCREEN_MIN_SIDE : CONFIG.SCREEN_MIN_ROLL; 
+    var area = Math.max(actualArea, minArea);
+    var price = 0;
 
-    if (type === 'roll' && (height > 2.0 || width > 5.0)) {
-        container.classList.remove('hidden');
-        resultDiv.innerHTML = "أقصى ارتفاع 2م وأقصى عرض 5م لشبك الرول";
-        resultDiv.className = "error-msg";
-        noteDiv.classList.add('hidden');
-        return;
-    }
-    if (type === 'side' && height > 3.0) {
-        container.classList.remove('hidden');
-        resultDiv.innerHTML = "أقصى ارتفاع مسموح هو 3 متر";
-        resultDiv.className = "error-msg";
-        noteDiv.classList.add('hidden');
-        return;
+    if (type === 'side') {
+        if (h > 3.0) {
+            container.classList.remove('hidden');
+            resDiv.innerHTML = "أقصى ارتفاع مسموح هو 3 متر";
+            resDiv.className = "error-msg";
+            // الزر يبقى مخفي لأن مفيش سعر
+            return;
+        }
+        price = (w > 1.6) ? CONFIG.SCREEN_SIDE_PRICE_LARGE : CONFIG.SCREEN_SIDE_PRICE_SMALL;
+    } else if (type === 'roll') {
+        price = CONFIG.SCREEN_ROLL_PRICE;
+        if (h > 2.0 || w > 5.0) {
+            container.classList.remove('hidden');
+            resDiv.innerHTML = "أقصى ارتفاع 2م وعرض 5م للرول";
+            resDiv.className = "error-msg";
+            // الزر يبقى مخفي لأن مفيش سعر
+            return;
+        }
     }
 
-    var finalWithTax = (calcArea * pricePerMeter) * 1.15;
+    var total = (area * price) * (1 + CONFIG.TAX_RATE);
     container.classList.remove('hidden');
-    noteDiv.classList.remove('hidden');
-    resultDiv.className = "result-box";
-    resultDiv.innerHTML = "الإجمالي: " + finalWithTax.toFixed(2) + " ريال" + (showMinNote ? "<div class='min-area-note'>* تم احتساب أقل مساحة (" + minArea + " متر مربع)</div>" : "");
+    taxNote.classList.remove('hidden');
+    visitBtn.classList.remove('hidden'); // إظهار الزر فقط عند نجاح الحساب
+    resDiv.className = "result-box";
+    resDiv.innerHTML = "الإجمالي: " + total.toFixed(2) + " ريال" + 
+        (actualArea < minArea ? "<div class='min-area-note'>* تم احتساب أقل مساحة (" + minArea + " متر مربع)</div>" : "");
+}
+
+// Modal Functions
+function openVisitModal() {
+    document.getElementById('visitModal').classList.remove('hidden');
+}
+
+function closeVisitModal() {
+    document.getElementById('visitModal').classList.add('hidden');
+    document.getElementById('visitForm').reset();
+    document.getElementById('visitForm').classList.remove('hidden');
+    document.getElementById('successMsg').classList.add('hidden');
+    document.getElementById('submitBtn').innerText = 'إرسال الطلب';
+    document.getElementById('submitBtn').disabled = false;
+}
+
+// EmailJS Initialization
+(function() { 
+    emailjs.init("YOUR_PUBLIC_KEY"); // ضع الـ Public Key الخاص بك هنا
+})();
+
+// Form Submission - يعمل بعد تحميل الصفحة
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeForm);
+} else {
+    initializeForm();
+}
+
+function initializeForm() {
+    var form = document.getElementById('visitForm');
+    if (form && !form.dataset.initialized) {
+        form.dataset.initialized = 'true';
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const successDiv = document.getElementById('successMsg');
+            
+            btn.innerText = 'جاري الإرسال...';
+            btn.disabled = true;
+
+            // جمع الخدمات المختارة
+            let selectedServices = [];
+            document.querySelectorAll('input[name="service"]:checked').forEach((checkbox) => {
+                selectedServices.push(checkbox.value);
+            });
+
+            const templateParams = {
+                from_name: document.getElementById('user_name').value,
+                phone: document.getElementById('user_phone').value,
+                email: document.getElementById('user_email').value,
+                services: selectedServices.join(', '),
+                to_email: 'contact@mejdafco.com'
+            };
+
+            // استبدل الأكواد التالية ببيانات حسابك في EmailJS
+            emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams)
+                .then(function() {
+                    document.getElementById('visitForm').classList.add('hidden');
+                    successDiv.classList.remove('hidden');
+                    
+                    // إغلاق النافذة تلقائياً بعد 3 ثواني
+                    setTimeout(function() {
+                        closeVisitModal();
+                    }, 3000);
+                }, function(error) {
+                    alert('حدث خطأ أثناء الإرسال: ' + JSON.stringify(error));
+                    btn.innerText = 'إرسال الطلب';
+                    btn.disabled = false;
+                });
+        });
+    }
 }
 </script>
